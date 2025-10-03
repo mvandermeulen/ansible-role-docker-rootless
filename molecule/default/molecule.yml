@@ -11,43 +11,19 @@ provisioner:
   config_options:
     defaults:
       callback_whitelist: profile_tasks
+  env:
+    ANSIBLE_ROLES_PATH: ${MOLECULE_PROJECT_DIRECTORY}/..:/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles
   log: true
   inventory:
     host_vars:
-      debiantesting:
+      almalinux10:
         docker_add_alias: true
-        docker_allow_ping: true
-        docker_allow_privileged_ports: false
-        docker_rootful: false
-        docker_user: debiantestinguser
-        docker_user_bashrc: false
-      bullseye:
-        docker_add_alias: true
-        docker_allow_ping: true
-        docker_allow_privileged_ports: false
-        docker_rootful: false
-        docker_user: bullseyeuser
-        docker_user_bashrc: false
-        docker_compose: false
-      arctic:
-        docker_add_alias: false
         docker_allow_ping: false
         docker_allow_privileged_ports: true
         docker_rootful: false
         docker_rootful_enabled: false
         docker_user: dockeruser
-        docker_user_bashrc: true
-        docker_compose: true
-      emeraldroot:
-        docker_add_alias: false
-        docker_allow_ping: false
-        docker_allow_privileged_ports: false
-        docker_rootful: true
-        docker_rootful_enabled: true
-        docker_user: dockeruser
-        docker_user_bashrc: false
-        docker_compose: false
-      focal:
+      noble:
         docker_add_alias: true
         docker_allow_ping: false
         docker_allow_privileged_ports: true
@@ -56,7 +32,7 @@ provisioner:
         docker_user: dockeruser
         docker_user_bashrc: false
         docker_compose: false
-      focalroot:
+      nobleroot:
         docker_add_alias: false
         docker_allow_ping: true
         docker_allow_privileged_ports: false
@@ -65,105 +41,63 @@ provisioner:
         docker_user: dockeruser
         docker_user_bashrc: false
         docker_compose: false
-      jammy:
-        docker_add_alias: false
-        docker_allow_ping: false
-        docker_allow_privileged_ports: false
-        docker_rootful: false
-        docker_rootful_enabled: false
-        docker_user: jammyuser
-        docker_user_bashrc: true
-        docker_compose: true
-      lunar:
-        docker_add_alias: false
+      trixie:
+        docker_add_alias: true
         docker_allow_ping: true
         docker_allow_privileged_ports: false
         docker_rootful: false
-        docker_rootful_enabled: false
-        docker_user: lunaruser
-        docker_user_bashrc: true
-        docker_compose: true
+        docker_user: trixieuser
+        docker_user_bashrc: false
+        docker_compose: false
 platforms:
-  - name: bullseye
-    box: "debian/bullseye64"
+  - name: almalinux10
+    box: almalinux/10-kitten-x86_64_v2
     config_options:
       vm.boot_timeout: 600
     provider_raw_config_args:
-      - "customize ['modifyvm', :id, '--natdnshostresolver1', 'on']"
+      - customize ['modifyvm', :id, '--natdnshostresolver1', 'on']
     instance_raw_config_args:
-      - 'vbguest.auto_update = false'
+      - vbguest.auto_update = false
     memory: 1024
-  - name: debiantesting
-    box: "debian/testing64"
-    config_options:
-      vm.boot_timeout: 600
-    provider_raw_config_args:
-      - "customize ['modifyvm', :id, '--natdnshostresolver1', 'on']"
-    instance_raw_config_args:
-      - 'vbguest.auto_update = false'
-    memory: 1024
-  - name: arctic
-    box: "almalinux/8"
-    config_options:
-      vm.boot_timeout: 600
-    provider_raw_config_args:
-      - "customize ['modifyvm', :id, '--natdnshostresolver1', 'on']"
-    instance_raw_config_args:
-      - 'vbguest.auto_update = false'
-    memory: 1024
-  - name: focal
-    box: "bento/ubuntu-20.04"
-    config_options:
-      vm.boot_timeout: 600
-    instance_raw_config_args:
-      - 'vbguest.installer_options = { allow_kernel_upgrade: true }'
-    memory: 1024
-  - name: jammy
-    box: "ubuntu/jammy64"
+  - name: noble
+    box: bento/ubuntu-24.04
     config_options:
       vm.boot_timeout: 600
       synced_folder: false
+      ssh.key_type: ed25519
     provider_raw_config_args:
-      - "customize ['modifyvm', :id, '--uart1', '0x3F8', '4']"
-      - "customize ['modifyvm', :id, '--uartmode1', 'file', File::NULL]"
+      - customize ["modifyvm", :id, "--cableconnected1", "on"]
+      - customize ['modifyvm', :id, '--uart1', '0x3F8', '4']
+      - customize ['modifyvm', :id, '--uartmode1', 'file', File::NULL]
     instance_raw_config_args:
-      - 'vbguest.installer_options = { allow_kernel_upgrade: true }'
-    memory: 1024
-  - name: lunar
-    box: "lunar/20230202"
-    box_url: "https://cloud-images.ubuntu.com/lunar/20230202/lunar-server-cloudimg-amd64-vagrant.box"
-    box_download_checksum: "dfd3f48efd8f170a0d2560b6fa17877929659c2e1d3903692cbc6c8787ae2407"
-    box_download_checksum_type: "sha256"
+      - "vbguest.installer_options = { allow_kernel_upgrade: false }"
+      - vbguest.auto_update = false
+    memory: 2048
+  - name: nobleroot
+    box: bento/ubuntu-24.04
     config_options:
       vm.boot_timeout: 600
       synced_folder: false
+      ssh.key_type: ed25519
     provider_raw_config_args:
-      - "customize ['modifyvm', :id, '--uart1', '0x3F8', '4']"
-      - "customize ['modifyvm', :id, '--uartmode1', 'file', File::NULL]"
+      - customize ["modifyvm", :id, "--cableconnected1", "on"]
+      - customize ['modifyvm', :id, '--uart1', '0x3F8', '4']
+      - customize ['modifyvm', :id, '--uartmode1', 'file', File::NULL]
     instance_raw_config_args:
-      - 'vbguest.installer_options = { allow_kernel_upgrade: true }'
-    memory: 1024
-  - name: emeraldroot
-    box: "almalinux/9"
+      - "vbguest.installer_options = { allow_kernel_upgrade: false }"
+      - vbguest.auto_update = false
+    memory: 2048
+  - name: trixie
+    box: bento/debian-13
     config_options:
       vm.boot_timeout: 600
     provider_raw_config_args:
-      - "customize ['modifyvm', :id, '--natdnshostresolver1', 'on']"
+      - customize ['modifyvm', :id, '--natdnshostresolver1', 'on']
     instance_raw_config_args:
-      - 'vbguest.auto_update = false'
-    memory: 1024
-  - name: focalroot
-    box: "bento/ubuntu-20.04"
-    config_options:
-      vm.boot_timeout: 600
-    instance_raw_config_args:
-      - 'vbguest.installer_options = { allow_kernel_upgrade: true }'
+      - vbguest.auto_update = false
     memory: 1024
 verifier:
   name: ansible
-lint: |
-  set -e
-  ansible-lint
 scenario:
   name: default
   create_sequence:
@@ -190,7 +124,6 @@ scenario:
     - destroy
   test_sequence:
     - dependency
-    - lint
     - cleanup
     - destroy
     - syntax

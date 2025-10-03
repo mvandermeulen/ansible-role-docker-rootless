@@ -13,7 +13,12 @@ jobs:
       issues: write
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+
       - name: 'auto-assign issue'
-        uses: pozil/auto-assign-issue@74b9f64cc1a08f99358061073e243a4c3d7dd5c4 # v1.11.0
+        uses: pozil/auto-assign-issue@39c06395cbac76e79afc4ad4e5c5c6db6ecfdd2e # v2.2.0
         with:
           assignees: konstruktoid

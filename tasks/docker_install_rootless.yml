@@ -8,49 +8,50 @@
   changed_when: false
   failed_when: false
 
-- name: Create Docker user bin dir
+- name: Create Docker user bin directory
   become: true
   become_user: "{{ docker_user }}"
   ansible.builtin.file:
     path: "{{ docker_user_info.home }}/bin"
     state: directory
     mode: "0700"
-  tags:
-    - docker
 
-- name: Create Docker user systemd config dir
+- name: Create user systemd .config directory
   become: true
   become_user: "{{ docker_user }}"
   ansible.builtin.file:
     path: "{{ docker_user_info.home }}/.config/systemd/user"
     state: directory
     mode: "0700"
-  tags:
-    - docker
-    - systemd
+
+- name: Create user Docker .config directory
+  become: true
+  become_user: "{{ docker_user }}"
+  ansible.builtin.file:
+    path: "{{ docker_user_info.home }}/.config/docker"
+    state: directory
+    mode: "0700"
 
 - name: Install rootless Docker
-  tags:
-    - docker
   when: docker_release not in rootless_docker_version.stdout
   block:
-    - name: "Download Docker archive {{ docker_release }}"
+    - name: Download Docker archive {{ docker_release }}
       become: true
       become_user: "{{ docker_user }}"
       ansible.builtin.get_url:
         url: "{{ docker_url }}/docker-{{ docker_release }}.tgz"
         dest: "{{ docker_user_info.home }}/docker-{{ docker_release }}.tgz"
-        checksum: "sha256:{{ docker_release_shasum }}"
+        checksum: "sha256:{{ shasums['docker_release'][docker_arch] }}"
         owner: "{{ docker_user }}"
         mode: "0644"
 
-    - name: "Download docker-rootless-extras archive {{ docker_release }}"
+    - name: Download docker-rootless-extras archive {{ docker_release }}
       become: true
       become_user: "{{ docker_user }}"
       ansible.builtin.get_url:
         url: "{{ docker_url }}/docker-rootless-extras-{{ docker_release }}.tgz"
         dest: "{{ docker_user_info.home }}/docker-rootless-extras-{{ docker_release }}.tgz"
-        checksum: "sha256:{{ docker_release_rootless_shasum }}"
+        checksum: "sha256:{{ shasums['docker_rootless_release'][docker_arch] }}"
         owner: "{{ docker_user }}"
         mode: "0644"
 
@@ -80,24 +81,16 @@
   become: true
   become_user: "{{ docker_user }}"
   ansible.builtin.template:
-    src: docker_rootless.service.j2
+    src: "{{ docker_rootless_service_template }}"
     dest: "{{ docker_user_info.home }}/.config/systemd/user/docker.service"
     backup: true
     mode: "0600"
-  tags:
-    - docker
-    - systemd
 
-- name: Enable and start Docker (rootless installation)
+- name: Add rootless Docker configuration file
   become: true
   become_user: "{{ docker_user }}"
-  ansible.builtin.systemd:
-    name: docker.service
-    enabled: true
-    state: started
-    scope: user
-    daemon_reload: true
-  tags:
-    - docker
-    - systemd
-...
+  ansible.builtin.template:
+    src: "{{ docker_daemon_json_template }}"
+    dest: "{{ docker_user_info.home }}/.config/docker/daemon.json"
+    backup: true
+    mode: "0644"
